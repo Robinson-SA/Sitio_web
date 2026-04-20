@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Lista de Trabajadores{% endblock %}
+
+{% block content %}
+<div class="vista-panel">
+
+    <!-- Barra de acciones -->
+    <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+        <a href="{% url 'agregar_empleado' %}" class="btn btn-accion btn-agregar">
+            <i class="bi bi-person-plus-fill me-1"></i>Agregar
+        </a>
+
+        <button class="btn btn-accion btn-filtrar" data-bs-toggle="collapse" data-bs-target="#panelFiltro">
+            <i class="bi bi-funnel-fill me-1"></i>Filtrar
+        </button>
+
+        <button class="btn btn-accion btn-modificar" id="btnModificar" disabled
+                onclick="irA('{% url 'modificar_empleado' 0 %}')">
+            <i class="bi bi-pencil-fill me-1"></i>Modificar
+        </button>
+
+        <button class="btn btn-accion btn-eliminar" id="btnEliminar" disabled
+                onclick="irA('{% url 'eliminar_empleado' 0 %}')">
+            <i class="bi bi-trash-fill me-1"></i>Eliminar
+        </button>
+    </div>
+
+    <!-- Panel de filtro colapsable -->
+    <div class="collapse mb-3" id="panelFiltro">
+        <div class="card card-body filtro-card">
+            <form method="get" class="d-flex gap-2 align-items-end">
+                <div>
+                    <label class="form-label small fw-semibold mb-1">Estado de contrato</label>
+                    {{ filtro_form.estado }}
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">Aplicar</button>
+                <a href="{% url 'lista_empleados' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        <!-- Sidebar Estado de contrato -->
+        <div class="col-auto">
+            <div class="estado-panel">
+                <p class="estado-titulo">Estado de contrato</p>
+                <button class="btn btn-estado btn-finiquitar w-100 mb-2"
+                        id="btnFiniquitar" disabled
+                        onclick="irA('{% url 'finiquitar_empleado' 0 %}')">
+                    Finiquitar
+                </button>
+                <button class="btn btn-estado btn-renovar w-100"
+                        id="btnRenovar" disabled
+                        onclick="irA('{% url 'renovar_empleado' 0 %}')">
+                    Renovar
+                </button>
+            </div>
+        </div>
+
+        <!-- Grid de trabajadores -->
+        <div class="col">
+            <div class="grid-panel">
+                {% if empleados %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="tablaEmpleados">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Sueldo</th>
+                                <th>Fecha inicio</th>
+                                <th>Fecha fin</th>
+                                <th>Estado</th>
+                                <th>Habilidades</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in empleados %}
+                            <tr class="fila-empleado" data-id="{{ emp.pk }}"
+                                data-url-modificar="{% url 'modificar_empleado' emp.pk %}"
+                                data-url-eliminar="{% url 'eliminar_empleado' emp.pk %}"
+                                data-url-finiquitar="{% url 'finiquitar_empleado' emp.pk %}"
+                                data-url-renovar="{% url 'renovar_empleado' emp.pk %}">
+                                <td class="fw-semibold">{{ emp.nombre }}</td>
+                                <td>${{ emp.sueldo }}</td>
+                                <td>{{ emp.fecha_inicio }}</td>
+                                <td>{{ emp.fecha_fin }}</td>
+                                <td>
+                                    <span class="badge-estado badge-{{ emp.estado_contrato }}">
+                                        {{ emp.get_estado_contrato_display }}
+                                    </span>
+                                </td>
+                                <td class="text-muted small">{{ emp.habilidades_blandas|truncatechars:40 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    No hay trabajadores registrados.
+                    <div class="mt-2">
+                        <a href="{% url 'agregar_empleado' %}" class="btn btn-sm btn-agregar">Agregar primero</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let selectedId = null;
+    const urlBase = {
+        modificar: "{% url 'modificar_empleado' 0 %}",
+        eliminar:  "{% url 'eliminar_empleado' 0 %}",
+        finiquitar:"{% url 'finiquitar_empleado' 0 %}",
+        renovar:   "{% url 'renovar_empleado' 0 %}",
+    };
+
+    document.querySelectorAll('.fila-empleado').forEach(fila => {
+        fila.addEventListener('click', function () {
+            document.querySelectorAll('.fila-empleado').forEach(f => f.classList.remove('fila-seleccionada'));
+            this.classList.add('fila-seleccionada');
+            selectedId = this.dataset.id;
+
+            document.getElementById('btnModificar').disabled = false;
+            document.getElementById('btnEliminar').disabled = false;
+            document.getElementById('btnFiniquitar').disabled = false;
+            document.getElementById('btnRenovar').disabled = false;
+
+            document.getElementById('btnModificar').setAttribute('onclick', `irA('${this.dataset.urlModificar}')`);
+            document.getElementById('btnEliminar').setAttribute('onclick',  `irA('${this.dataset.urlEliminar}')`);
+            document.getElementById('btnFiniquitar').setAttribute('onclick',`irA('${this.dataset.urlFiniquitar}')`);
+            document.getElementById('btnRenovar').setAttribute('onclick',   `irA('${this.dataset.urlRenovar}')`);
+        });
+    });
+
+    function irA(url) {
+        if (selectedId) window.location.href = url;
+    }
+</script>
+{% endblock %}

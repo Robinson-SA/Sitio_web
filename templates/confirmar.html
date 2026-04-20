@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Confirmar — Agregar Empleado{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-5 col-md-7">
+        <div class="confirmar-panel">
+            <p class="confirmar-titulo">
+                <i class="bi bi-question-circle me-2"></i>¿Está seguro de agregar?
+            </p>
+
+            <!-- Resumen de datos -->
+            <div class="datos-resumen mb-4">
+                <div class="dato-fila">
+                    <span class="dato-label">Nombre</span>
+                    <span>{{ datos.nombre }}</span>
+                </div>
+                <div class="dato-fila">
+                    <span class="dato-label">Sueldo</span>
+                    <span>${{ datos.sueldo }}</span>
+                </div>
+                <div class="dato-fila">
+                    <span class="dato-label">Fecha inicio</span>
+                    <span>{{ datos.fecha_inicio }}</span>
+                </div>
+                <div class="dato-fila">
+                    <span class="dato-label">Fecha fin</span>
+                    <span>{{ datos.fecha_fin }}</span>
+                </div>
+                {% if datos.habilidades_blandas %}
+                <div class="dato-fila">
+                    <span class="dato-label">Habilidades</span>
+                    <span>{{ datos.habilidades_blandas }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Formulario oculto para confirmar -->
+            <form method="post" action="{% url 'agregar_empleado' %}">
+                {% csrf_token %}
+                {% for field in form %}
+                    <input type="hidden" name="{{ field.html_name }}" value="{{ field.value }}">
+                {% endfor %}
+                <input type="hidden" name="action" value="confirmar">
+
+                <div class="d-flex gap-3 justify-content-center">
+                    <button type="submit" class="btn btn-confirmar-si px-5">
+                        <i class="bi bi-check-lg me-1"></i>Sí
+                    </button>
+                    <a href="{% url 'agregar_empleado' %}" class="btn btn-confirmar-no px-5">
+                        <i class="bi bi-x-lg me-1"></i>No
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
