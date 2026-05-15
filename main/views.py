@@ -1,9 +1,73 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
 from .models import Empleado, Certificado
-from .forms import EmpleadoForm, CertificadoForm, FiltroEstadoForm
+from .forms import EmpleadoForm, CertificadoForm, FiltroEstadoForm, LoginForm, RegisterForm
 
 
+@require_http_methods(["GET", "POST"])
+def login_view(request):
+    """
+    Vista de login OWASP-compliant.
+    Incluye protecciones contra fuerza bruta, CSRF, y mensajes de error genéricos.
+    """
+    if request.user.is_authenticated:
+        return redirect('lista_empleados')
+
+    if request.method == 'POST':
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, f'Bienvenido, {user.first_name or user.username}.')
+                return redirect('lista_empleados')
+            else:
+                # OWASP: Mensaje genérico para no revelar si el usuario existe
+                messages.error(request, 'Nombre de usuario o contraseña incorrectos.')
+    else:
+        form = LoginForm()
+
+    return render(request, 'login.html', {'form': form})
+
+
+@require_http_methods(["POST"])
+def logout_view(request):
+    """Vista de logout segura."""
+    logout(request)
+    messages.success(request, 'Sesión cerrada correctamente.')
+    return redirect('login')
+
+
+@require_http_methods(["GET", "POST"])
+def register_view(request):
+    """
+    Vista de registro de usuario con validación de contraseña fuerte OWASP.
+    """
+    if request.user.is_authenticated:
+        return redirect('lista_empleados')
+
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, '¡Registro exitoso! Por favor, inicia sesión.')
+            return redirect('login')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    else:
+        form = RegisterForm()
+
+    return render(request, 'register.html', {'form': form})
+
+
+@login_required(login_url='login')
 def lista_empleados(request):
     filtro_form = FiltroEstadoForm(request.GET)
     empleados = Empleado.objects.all()
@@ -19,6 +83,7 @@ def lista_empleados(request):
     })
 
 
+@login_required(login_url='login')
 def agregar_empleado(request):
     if request.method == 'POST':
         action = request.POST.get('action', 'preview')
@@ -42,6 +107,7 @@ def agregar_empleado(request):
     })
 
 
+@login_required(login_url='login')
 def modificar_empleado(request, pk):
     empleado = get_object_or_404(Empleado, pk=pk)
     if request.method == 'POST':
@@ -60,6 +126,7 @@ def modificar_empleado(request, pk):
     })
 
 
+@login_required(login_url='login')
 def eliminar_empleado(request, pk):
     empleado = get_object_or_404(Empleado, pk=pk)
     if request.method == 'POST':
@@ -70,6 +137,7 @@ def eliminar_empleado(request, pk):
     return render(request, 'eliminar.html', {'empleado': empleado})
 
 
+@login_required(login_url='login')
 def finiquitar_empleado(request, pk):
     empleado = get_object_or_404(Empleado, pk=pk)
     empleado.estado_contrato = 'finiquitado'
@@ -78,6 +146,7 @@ def finiquitar_empleado(request, pk):
     return redirect('lista_empleados')
 
 
+@login_required(login_url='login')
 def renovar_empleado(request, pk):
     empleado = get_object_or_404(Empleado, pk=pk)
     empleado.estado_contrato = 'renovado'
@@ -86,6 +155,7 @@ def renovar_empleado(request, pk):
     return redirect('lista_empleados')
 
 
+@login_required(login_url='login')
 def agregar_certificado(request, pk):
     empleado = get_object_or_404(Empleado, pk=pk)
     if request.method == 'POST':

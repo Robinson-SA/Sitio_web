@@ -11,21 +11,45 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+import os
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_xsnlknx)=y)0+5zwst=m!pj!c34g3sp#2g!#hx_lkzmvj-h)d'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-_xsnlknx)=y)0+5zwst=m!pj!c34g3sp#2g!#hx_lkzmvj-h)d')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=lambda v: [s.strip() for s in v.split(',')] if v else [])
+
+
+# Security settings following OWASP guidelines
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_SSL_REDIRECT = False  # Deshabilitado en desarrollo
+SESSION_COOKIE_SECURE = False  # Deshabilitado en desarrollo
+CSRF_COOKIE_SECURE = False  # Deshabilitado en desarrollo
+SECURE_HSTS_SECONDS = 0  # Deshabilitado en desarrollo
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+
+# Content Security Policy (CSP) settings
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", "https://cdn.jsdelivr.net")
+CSP_SCRIPT_SRC = ("'self'", "https://cdn.jsdelivr.net")
+CSP_IMG_SRC = ("'self'", "data:", "https:")
+CSP_FONT_SRC = ("'self'", "https://cdn.jsdelivr.net")
 
 
 # Application definition
@@ -37,10 +61,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'csp',
     'main',
 ]
 
 MIDDLEWARE = [
+    'csp.middleware.CSPMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -75,12 +101,12 @@ WSGI_APPLICATION = 'web.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mysql',
-        'USER': 'admin',
-        'PASSWORD': 'Inacap.2026',
-        'HOST': 'database-1.cywltn6mbb8b.us-east-1.rds.amazonaws.com',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3' if DEBUG else 'django.db.backends.mysql',
+        'NAME': BASE_DIR / 'db.sqlite3' if DEBUG else config('DB_NAME', default='sitio_web'),
+        'USER': '' if DEBUG else config('DB_USER', default='admin'),
+        'PASSWORD': '' if DEBUG else config('DB_PASSWORD', default='Inacap.2026'),
+        'HOST': '' if DEBUG else config('DB_HOST', default='database-1.cywltn6mbb8b.us-east-1.rds.amazonaws.com'),
+        'PORT': '' if DEBUG else config('DB_PORT', default='3306'),
     }
 }
 
@@ -130,3 +156,28 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Authentication settings (OWASP-compliant)
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'lista_empleados'
+LOGOUT_REDIRECT_URL = 'login'
+
+# Session security settings
+SESSION_COOKIE_AGE = 3600  # 1 hora
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# CSRF security settings
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+
+# Password hashing (OWASP: usar Argon2, alternativas si no está disponible)
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+]

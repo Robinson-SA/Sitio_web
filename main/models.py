@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import FileExtensionValidator
 
 
 class Empleado(models.Model):
@@ -26,7 +27,7 @@ class Empleado(models.Model):
 class Certificado(models.Model):
     empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE, related_name='certificados')
     nombre = models.CharField(max_length=200)
-    archivo = models.FileField(upload_to='certificados/', blank=True, null=True)
+    archivo = models.FileField(upload_to='certificados/', blank=True, null=True, validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png'])])
 
     def __str__(self):
         return f"{self.nombre} — {self.empleado.nombre}"

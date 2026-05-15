@@ -1,2 +1,6 @@
-Django>=5.2.5
+# Python 3.13.7
+Django==5.2.5
 mysqlclient
+django-csp==3.8
+python-decouple==3.8
+argon2-cffi==23.1.0
