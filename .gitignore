@@ -1,0 +1,32 @@
+# Archivos y carpetas a ignorar por Git
+# Base de datos SQLite
+/db.sqlite3
+
+# Archivos de documentación (no subir)
+DOCUMENTACION_AUTENTICACION.md
+GUIA_RAPIDA_LOGIN.md
+INDICE_SEGURIDAD.txt
+INFORME_SEGURIDAD_COMPLETO.md
+REPORTE_INTENTOS_ROMPER.md
+REPORTE_PENETRACION.md
+RESUMEN_INTENTO_ROMPER.md
+SECURITY_SCORECARD.md
+
+# Entornos virtuales de Python
+venv/
+.env/
+
+# Archivos de configuración locales
+*.env
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de logs
+*.log
+
+# Archivos de VSCode
+.vscode/

@@ -26,7 +26,7 @@ import os
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-_xsnlknx)=y)0+5zwst=m!pj!c34g3sp#2g!#hx_lkzmvj-h)d')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=lambda v: [s.strip() for s in v.split(',')] if v else [])
 
@@ -103,9 +103,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3' if DEBUG else 'django.db.backends.mysql',
         'NAME': BASE_DIR / 'db.sqlite3' if DEBUG else config('DB_NAME', default='sitio_web'),
-        'USER': '' if DEBUG else config('DB_USER', default='admin'),
+        'USER': '' if DEBUG else config('DB_USER', default='Admin'),
         'PASSWORD': '' if DEBUG else config('DB_PASSWORD', default='Inacap.2026'),
-        'HOST': '' if DEBUG else config('DB_HOST', default='database-1.cywltn6mbb8b.us-east-1.rds.amazonaws.com'),
+        'HOST': '' if DEBUG else config('DB_HOST', default='127.0.0.1'),
         'PORT': '' if DEBUG else config('DB_PORT', default='3306'),
     }
 }
