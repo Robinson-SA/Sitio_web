@@ -1,0 +1,192 @@
+/* ── Base ── */
+body {
+    background: #f0eff5;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Panel principal (Vista) ── */
+.vista-panel {
+    background: #faf4f4;
+    border: 1.5px solid #e8d9d9;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* ── Botones de acción (barra superior) ── */
+.btn-accion {
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 7px 18px;
+    transition: filter .15s;
+}
+.btn-accion:hover { filter: brightness(0.92); }
+
+.btn-agregar   { background: #7ecba1; color: #fff; }
+.btn-filtrar   { background: #f6d97a; color: #5a4a00; }
+.btn-modificar { background: #87c7e8; color: #fff; }
+.btn-eliminar  { background: #f4918a; color: #fff; }
+
+/* ── Sidebar estado de contrato ── */
+.estado-panel {
+    background: #faf4f4;
+    border: 1.5px solid #e8d9d9;
+    border-radius: 14px;
+    padding: 18px 14px;
+    width: 148px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.estado-titulo {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 14px;
+}
+.btn-estado {
+    border: none;
+    border-radius: 8px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    padding: 8px 0;
+    transition: filter .15s, opacity .15s;
+}
+.btn-estado:disabled { opacity: .45; cursor: not-allowed; }
+.btn-finiquitar { background: #f4b06a; color: #fff; }
+.btn-renovar    { background: #7ecba1; color: #fff; }
+
+/* ── Grid de trabajadores ── */
+.grid-panel {
+    background: #c8e6f5;
+    border-radius: 14px;
+    padding: 16px;
+    min-height: 200px;
+}
+.grid-panel table thead th {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #4a6a7a;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    border-bottom: 2px solid #a8d4e8;
+    background: transparent;
+}
+.grid-panel table tbody tr {
+    cursor: pointer;
+    transition: background .12s;
+}
+.grid-panel table tbody tr:hover { background: rgba(255,255,255,0.55); }
+.fila-seleccionada { background: rgba(255,255,255,0.85) !important; }
+.fila-seleccionada td { font-weight: 600; }
+
+/* ── Badges de estado ── */
+.badge-estado {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.badge-activo      { background: #d4f5e2; color: #276749; }
+.badge-finiquitado { background: #fde8d0; color: #8a4500; }
+.badge-renovado    { background: #d0eafd; color: #1a5a8a; }
+
+/* ── Filtro card ── */
+.filtro-card {
+    background: #faf4f4;
+    border: 1.5px solid #e8d9d9 !important;
+    border-radius: 10px;
+}
+
+/* ── Formulario inputs ── */
+.form-control {
+    border-radius: 8px;
+    border: 1.5px solid #ddd;
+    font-size: 0.9rem;
+    padding: 9px 12px;
+}
+.form-control:focus {
+    border-color: #87c7e8;
+    box-shadow: 0 0 0 3px rgba(135,199,232,.2);
+}
+.form-control::placeholder { color: #bbb; }
+
+/* ── Botones Contrato / Certificado en formulario ── */
+.btn-contrato {
+    background: #c8e6f5;
+    color: #2a6080;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 8px 14px;
+}
+.btn-certificado {
+    background: #d4f5e2;
+    color: #1a6040;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 8px 14px;
+}
+.btn-contrato:hover   { filter: brightness(0.93); }
+.btn-certificado:hover { filter: brightness(0.93); }
+
+/* ── Panel de confirmación ── */
+.confirmar-panel {
+    background: #faf4f4;
+    border: 1.5px solid #e8d9d9;
+    border-radius: 14px;
+    padding: 30px 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.confirmar-titulo {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #555;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.datos-resumen {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #ececec;
+    overflow: hidden;
+}
+.dato-fila {
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 16px;
+    font-size: 0.88rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+.dato-fila:last-child { border-bottom: none; }
+.dato-label { color: #999; font-weight: 600; }
+
+.btn-confirmar-si {
+    background: #7ecba1;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 0;
+    transition: filter .15s;
+}
+.btn-confirmar-si:hover { filter: brightness(0.9); color: #fff; }
+
+.btn-confirmar-no {
+    background: #87c7e8;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 10px 0;
+    transition: filter .15s;
+}
+.btn-confirmar-no:hover { filter: brightness(0.9); color: #fff; }

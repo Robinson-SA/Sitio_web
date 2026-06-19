@@ -29,7 +29,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-_xsnlknx)=y)0+5zwst=m
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=lambda v: [s.strip() for s in v.split(',')] if v else [])
-
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://127.0.0.1').split(',')
 
 # Security settings following OWASP guidelines
 SECURE_BROWSER_XSS_FILTER = True
@@ -68,9 +68,10 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'csp.middleware.CSPMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',  # comentada temporalmente
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -101,15 +102,14 @@ WSGI_APPLICATION = 'web.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3' if DEBUG else 'django.db.backends.mysql',
-        'NAME': BASE_DIR / 'db.sqlite3' if DEBUG else config('DB_NAME', default='sitio_web'),
-        'USER': '' if DEBUG else config('DB_USER', default='Admin'),
-        'PASSWORD': '' if DEBUG else config('DB_PASSWORD', default='Inacap.2026'),
-        'HOST': '' if DEBUG else config('DB_HOST', default='127.0.0.1'),
-        'PORT': '' if DEBUG else config('DB_PORT', default='3306'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': config('DB_NAME', default='base_dato'),
+        'USER': config('DB_USER', default='ADMIN'),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='127.0.0.1'),
+        'PORT': config('DB_PORT', default='3306'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -148,6 +148,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -165,14 +166,10 @@ LOGOUT_REDIRECT_URL = 'login'
 # Session security settings
 SESSION_COOKIE_AGE = 3600  # 1 hora
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = 'Strict'
+SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # CSRF security settings
-CSRF_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = 'Strict'
 
 # Password hashing (OWASP: usar Argon2, alternativas si no está disponible)
 PASSWORD_HASHERS = [

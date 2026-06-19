@@ -19,16 +19,12 @@ def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, f'Bienvenido, {user.first_name or user.username}.')
-                return redirect('lista_empleados')
-            else:
-                # OWASP: Mensaje genérico para no revelar si el usuario existe
-                messages.error(request, 'Nombre de usuario o contraseña incorrectos.')
+
+
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f'Bienvenido, {user.first_name or user.username}.')
+            return redirect('lista_empleados')
     else:
         form = LoginForm()
 
