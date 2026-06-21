@@ -3,3 +3,5 @@ PyMySQL==1.1.2
 django-csp==3.8
 python-decouple==3.8
 argon2-cffi==23.1.0
+azure-storage-blob==12.18.0
+Pillow==10.1.0

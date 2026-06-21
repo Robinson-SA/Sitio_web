@@ -1,5 +1,8 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from azure.storage.blob import generate_blob_sas, BlobSasPermissions
+from datetime import datetime, timedelta, timezone
+from django.conf import settings
 
 
 class Empleado(models.Model):
@@ -31,3 +34,27 @@ class Certificado(models.Model):
 
     def __str__(self):
         return f"{self.nombre} — {self.empleado.nombre}"
+
+    def get_url(self):
+        if not self.archivo:
+            return None
+        blob_name = self.archivo.name
+        sas_token = generate_blob_sas(
+            account_name=settings.AZURE_ACCOUNT_NAME,
+            container_name=settings.AZURE_CONTAINER,
+            blob_name=blob_name,
+            account_key=settings.AZURE_ACCOUNT_KEY,
+            permission=BlobSasPermissions(read=True),
+            expiry=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        return f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{blob_name}?{sas_token}"
+
+    def es_imagen(self):
+        if not self.archivo:
+            return False
+        return self.archivo.name.lower().endswith(('.jpg', '.jpeg', '.png'))
+
+    def es_pdf(self):
+        if not self.archivo:
+            return False
+        return self.archivo.name.lower().endswith('.pdf')
