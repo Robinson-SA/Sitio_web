@@ -17,9 +17,29 @@ class Empleado(models.Model):
     fecha_fin = models.DateField()
     habilidades_blandas = models.TextField(blank=True)
     estado_contrato = models.CharField(max_length=20, choices=ESTADOS, default='activo')
+    foto = models.ImageField(
+        upload_to='fotos_empleados/',
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])],
+    )
 
     def __str__(self):
         return self.nombre
+
+    def get_foto_url(self):
+        if not self.foto:
+            return None
+        blob_name = self.foto.name
+        sas_token = generate_blob_sas(
+            account_name=settings.AZURE_ACCOUNT_NAME,
+            container_name=settings.AZURE_CONTAINER,
+            blob_name=blob_name,
+            account_key=settings.AZURE_ACCOUNT_KEY,
+            permission=BlobSasPermissions(read=True),
+            expiry=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        return f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{blob_name}?{sas_token}"
 
     class Meta:
         verbose_name = 'Empleado'

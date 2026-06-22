@@ -15,4 +15,5 @@ urlpatterns = [
     path('finiquitar/<int:pk>/', views.finiquitar_empleado, name='finiquitar_empleado'),
     path('renovar/<int:pk>/', views.renovar_empleado, name='renovar_empleado'),
     path('certificado/<int:pk>/', views.agregar_certificado, name='agregar_certificado'),
+    path('foto/<int:pk>/', views.agregar_foto_empleado, name='agregar_foto_empleado'),
 ]

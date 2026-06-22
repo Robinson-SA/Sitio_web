@@ -113,6 +113,29 @@ class CertificadoForm(forms.ModelForm):
         return archivo
 
 
+class FotoEmpleadoForm(forms.ModelForm):
+    class Meta:
+        model = Empleado
+        fields = ['foto']
+        widgets = {
+            'foto': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/png,image/jpeg'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['foto'].validators.append(FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']))
+
+    def clean_foto(self):
+        foto = self.cleaned_data.get('foto')
+        if foto:
+            if foto.size > 5 * 1024 * 1024:
+                raise ValidationError('La imagen es demasiado grande. Máximo 5MB.')
+            allowed_mimes = ['image/jpeg', 'image/png', 'image/jpg']
+            if hasattr(foto, 'content_type') and foto.content_type not in allowed_mimes:
+                raise ValidationError('Tipo de archivo no permitido. Solo JPG o PNG.')
+        return foto
+
+
 class FiltroEstadoForm(forms.Form):
     OPCIONES = [('', 'Todos')] + Empleado.ESTADOS
     estado = forms.ChoiceField(choices=OPCIONES, required=False, label='Estado de contrato',

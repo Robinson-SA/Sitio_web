@@ -66,6 +66,7 @@
                     <table class="table table-hover align-middle mb-0" id="tablaEmpleados">
                         <thead>
                             <tr>
+                                <th>Foto</th>
                                 <th>Nombre</th>
                                 <th>Sueldo</th>
                                 <th>Fecha inicio</th>
@@ -81,6 +82,16 @@
                                 data-url-eliminar="{% url 'eliminar_empleado' emp.pk %}"
                                 data-url-finiquitar="{% url 'finiquitar_empleado' emp.pk %}"
                                 data-url-renovar="{% url 'renovar_empleado' emp.pk %}">
+                                <td onclick="event.stopPropagation();">
+                                    {% if emp.foto %}
+                                        <img src="{{ emp.get_foto_url }}" alt="Foto de {{ emp.nombre }}"
+                                             class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
+                                    {% else %}
+                                        <a href="{% url 'agregar_foto_empleado' emp.pk %}" class="btn btn-sm btn-outline-secondary" title="Subir foto">
+                                            <i class="bi bi-camera-fill"></i>
+                                        </a>
+                                    {% endif %}
+                                </td>
                                 <td class="fw-semibold">{{ emp.nombre }}</td>
                                 <td>${{ emp.sueldo }}</td>
                                 <td>{{ emp.fecha_inicio }}</td>

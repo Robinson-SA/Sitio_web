@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from .models import Empleado, Certificado
-from .forms import EmpleadoForm, CertificadoForm, FiltroEstadoForm, LoginForm, RegisterForm
+from .forms import EmpleadoForm, CertificadoForm, FotoEmpleadoForm, FiltroEstadoForm, LoginForm, RegisterForm
 
 
 @require_http_methods(["GET", "POST"])
@@ -165,3 +165,20 @@ def agregar_certificado(request, pk):
     else:
         form = CertificadoForm()
     return render(request, 'certificado.html', {'form': form, 'empleado': empleado})
+
+
+@login_required(login_url='login')
+def agregar_foto_empleado(request, pk):
+    empleado = get_object_or_404(Empleado, pk=pk)
+    if empleado.foto:
+        messages.warning(request, f'"{empleado.nombre}" ya tiene una foto cargada.')
+        return redirect('lista_empleados')
+    if request.method == 'POST':
+        form = FotoEmpleadoForm(request.POST, request.FILES, instance=empleado)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Foto agregada.')
+            return redirect('lista_empleados')
+    else:
+        form = FotoEmpleadoForm(instance=empleado)
+    return render(request, 'foto_empleado.html', {'form': form, 'empleado': empleado})
