@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Lista de Trabajadores{% endblock %}
 
 {% block content %}
@@ -14,13 +15,11 @@
             <i class="bi bi-funnel-fill me-1"></i>Filtrar
         </button>
 
-        <button class="btn btn-accion btn-modificar" id="btnModificar" disabled
-                onclick="irA('{% url 'modificar_empleado' 0 %}')">
+        <button class="btn btn-accion btn-modificar" id="btnModificar" disabled>
             <i class="bi bi-pencil-fill me-1"></i>Modificar
         </button>
 
-        <button class="btn btn-accion btn-eliminar" id="btnEliminar" disabled
-                onclick="irA('{% url 'eliminar_empleado' 0 %}')">
+        <button class="btn btn-accion btn-eliminar" id="btnEliminar" disabled>
             <i class="bi bi-trash-fill me-1"></i>Eliminar
         </button>
     </div>
@@ -46,13 +45,11 @@
             <div class="estado-panel">
                 <p class="estado-titulo">Estado de contrato</p>
                 <button class="btn btn-estado btn-finiquitar w-100 mb-2"
-                        id="btnFiniquitar" disabled
-                        onclick="irA('{% url 'finiquitar_empleado' 0 %}')">
+                        id="btnFiniquitar" disabled>
                     Finiquitar
                 </button>
                 <button class="btn btn-estado btn-renovar w-100"
-                        id="btnRenovar" disabled
-                        onclick="irA('{% url 'renovar_empleado' 0 %}')">
+                        id="btnRenovar" disabled>
                     Renovar
                 </button>
             </div>
@@ -82,7 +79,7 @@
                                 data-url-eliminar="{% url 'eliminar_empleado' emp.pk %}"
                                 data-url-finiquitar="{% url 'finiquitar_empleado' emp.pk %}"
                                 data-url-renovar="{% url 'renovar_empleado' emp.pk %}">
-                                <td onclick="event.stopPropagation();">
+                                <td class="celda-foto">
                                     {% if emp.foto %}
                                         <img src="{{ emp.get_foto_url }}" alt="Foto de {{ emp.nombre }}"
                                              class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
@@ -123,35 +120,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    let selectedId = null;
-    const urlBase = {
-        modificar: "{% url 'modificar_empleado' 0 %}",
-        eliminar:  "{% url 'eliminar_empleado' 0 %}",
-        finiquitar:"{% url 'finiquitar_empleado' 0 %}",
-        renovar:   "{% url 'renovar_empleado' 0 %}",
-    };
-
-    document.querySelectorAll('.fila-empleado').forEach(fila => {
-        fila.addEventListener('click', function () {
-            document.querySelectorAll('.fila-empleado').forEach(f => f.classList.remove('fila-seleccionada'));
-            this.classList.add('fila-seleccionada');
-            selectedId = this.dataset.id;
-
-            document.getElementById('btnModificar').disabled = false;
-            document.getElementById('btnEliminar').disabled = false;
-            document.getElementById('btnFiniquitar').disabled = false;
-            document.getElementById('btnRenovar').disabled = false;
-
-            document.getElementById('btnModificar').setAttribute('onclick', `irA('${this.dataset.urlModificar}')`);
-            document.getElementById('btnEliminar').setAttribute('onclick',  `irA('${this.dataset.urlEliminar}')`);
-            document.getElementById('btnFiniquitar').setAttribute('onclick',`irA('${this.dataset.urlFiniquitar}')`);
-            document.getElementById('btnRenovar').setAttribute('onclick',   `irA('${this.dataset.urlRenovar}')`);
-        });
-    });
-
-    function irA(url) {
-        if (selectedId) window.location.href = url;
-    }
-</script>
+<script src="{% static 'js/lista.js' %}"></script>
 {% endblock %}

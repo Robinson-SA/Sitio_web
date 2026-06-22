@@ -1,0 +1,209 @@
+commit cce2e97eb65d704a868b17b099e47749d89f64e4
+Author: Robinson-SA <robinsonmunoz.abreu@gmail.com>
+Date:   Mon Jun 22 01:55:20 2026 -0400
+
+    Agregar funcionalidad para subir y gestionar fotos de empleados
+
+diff --git a/main/forms.py b/main/forms.py
+index 33053ae..039445c 100644
+--- a/main/forms.py
++++ b/main/forms.py
+@@ -113,6 +113,29 @@ class CertificadoForm(forms.ModelForm):
+         return archivo
+ 
+ 
++class FotoEmpleadoForm(forms.ModelForm):
++    class Meta:
++        model = Empleado
++        fields = ['foto']
++        widgets = {
++            'foto': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/png,image/jpeg'}),
++        }
++
++    def __init__(self, *args, **kwargs):
++        super().__init__(*args, **kwargs)
++        self.fields['foto'].validators.append(FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png']))
++
++    def clean_foto(self):
++        foto = self.cleaned_data.get('foto')
++        if foto:
++            if foto.size > 5 * 1024 * 1024:
++                raise ValidationError('La imagen es demasiado grande. Máximo 5MB.')
++            allowed_mimes = ['image/jpeg', 'image/png', 'image/jpg']
++            if hasattr(foto, 'content_type') and foto.content_type not in allowed_mimes:
++                raise ValidationError('Tipo de archivo no permitido. Solo JPG o PNG.')
++        return foto
++
++
+ class FiltroEstadoForm(forms.Form):
+     OPCIONES = [('', 'Todos')] + Empleado.ESTADOS
+     estado = forms.ChoiceField(choices=OPCIONES, required=False, label='Estado de contrato',
+diff --git a/main/migrations/0002_empleado_foto.py b/main/migrations/0002_empleado_foto.py
+new file mode 100644
+index 0000000..9327cde
+--- /dev/null
++++ b/main/migrations/0002_empleado_foto.py
+@@ -0,0 +1,17 @@
++import django.core.validators
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('main', '0001_initial'),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name='empleado',
++            name='foto',
++            field=models.ImageField(blank=True, null=True, upload_to='fotos_empleados/', validators=[django.core.validators.FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]),
++        ),
++    ]
+diff --git a/main/models.py b/main/models.py
+index 84170e6..c3c1872 100644
+--- a/main/models.py
++++ b/main/models.py
+@@ -17,10 +17,30 @@ class Empleado(models.Model):
+     fecha_fin = models.DateField()
+     habilidades_blandas = models.TextField(blank=True)
+     estado_contrato = models.CharField(max_length=20, choices=ESTADOS, default='activo')
++    foto = models.ImageField(
++        upload_to='fotos_empleados/',
++        blank=True,
++        null=True,
++        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])],
++    )
+ 
+     def __str__(self):
+         return self.nombre
+ 
++    def get_foto_url(self):
++        if not self.foto:
++            return None
++        blob_name = self.foto.name
++        sas_token = generate_blob_sas(
++            account_name=settings.AZURE_ACCOUNT_NAME,
++            container_name=settings.AZURE_CONTAINER,
++            blob_name=blob_name,
++            account_key=settings.AZURE_ACCOUNT_KEY,
++            permission=BlobSasPermissions(read=True),
++            expiry=datetime.now(timezone.utc) + timedelta(hours=1)
++        )
++        return f"https://{settings.AZURE_ACCOUNT_NAME}.blob.core.windows.net/{settings.AZURE_CONTAINER}/{blob_name}?{sas_token}"
++
+     class Meta:
+         verbose_name = 'Empleado'
+         verbose_name_plural = 'Empleados'
+diff --git a/main/urls.py b/main/urls.py
+index 04ea5aa..1fbcf8a 100644
+--- a/main/urls.py
++++ b/main/urls.py
+@@ -15,4 +15,5 @@ urlpatterns = [
+     path('finiquitar/<int:pk>/', views.finiquitar_empleado, name='finiquitar_empleado'),
+     path('renovar/<int:pk>/', views.renovar_empleado, name='renovar_empleado'),
+     path('certificado/<int:pk>/', views.agregar_certificado, name='agregar_certificado'),
++    path('foto/<int:pk>/', views.agregar_foto_empleado, name='agregar_foto_empleado'),
+ ]
+diff --git a/main/views.py b/main/views.py
+index 0d6ee38..e4aa667 100644
+--- a/main/views.py
++++ b/main/views.py
+@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate, login, logout
+ from django.contrib.auth.decorators import login_required
+ from django.views.decorators.http import require_http_methods
+ from .models import Empleado, Certificado
+-from .forms import EmpleadoForm, CertificadoForm, FiltroEstadoForm, LoginForm, RegisterForm
++from .forms import EmpleadoForm, CertificadoForm, FotoEmpleadoForm, FiltroEstadoForm, LoginForm, RegisterForm
+ 
+ 
+ @require_http_methods(["GET", "POST"])
+@@ -165,3 +165,20 @@ def agregar_certificado(request, pk):
+     else:
+         form = CertificadoForm()
+     return render(request, 'certificado.html', {'form': form, 'empleado': empleado})
++
++
++@login_required(login_url='login')
++def agregar_foto_empleado(request, pk):
++    empleado = get_object_or_404(Empleado, pk=pk)
++    if empleado.foto:
++        messages.warning(request, f'"{empleado.nombre}" ya tiene una foto cargada.')
++        return redirect('lista_empleados')
++    if request.method == 'POST':
++        form = FotoEmpleadoForm(request.POST, request.FILES, instance=empleado)
++        if form.is_valid():
++            form.save()
++            messages.success(request, 'Foto agregada.')
++            return redirect('lista_empleados')
++    else:
++        form = FotoEmpleadoForm(instance=empleado)
++    return render(request, 'foto_empleado.html', {'form': form, 'empleado': empleado})
+diff --git a/templates/foto_empleado.html b/templates/foto_empleado.html
+new file mode 100644
+index 0000000..509a47e
+--- /dev/null
++++ b/templates/foto_empleado.html
+@@ -0,0 +1,32 @@
++{% extends 'base.html' %}
++{% block title %}Agregar Foto{% endblock %}
++
++{% block content %}
++<div class="row justify-content-center">
++    <div class="col-lg-5 col-md-7">
++        <div class="vista-panel">
++            <h5 class="fw-bold mb-1 text-muted">Agregar Foto</h5>
++            <p class="text-muted small mb-4">Empleado: <strong>{{ empleado.nombre }}</strong></p>
++
++            <form method="post" enctype="multipart/form-data" novalidate>
++                {% csrf_token %}
++                <div class="mb-4">
++                    <label class="form-label small fw-semibold">Imagen (JPG o PNG, máx. 5MB)</label>
++                    {{ form.foto }}
++                    {% if form.foto.errors %}
++                        <div class="text-danger small mt-1">{{ form.foto.errors|join:', ' }}</div>
++                    {% endif %}
++                </div>
++                <div class="d-flex gap-2">
++                    <button type="submit" class="btn btn-accion btn-agregar flex-fill">
++                        <i class="bi bi-upload me-1"></i>Guardar
++                    </button>
++                    <a href="{% url 'lista_empleados' %}" class="btn btn-outline-secondary flex-fill">
++                        Cancelar
++                    </a>
++                </div>
++            </form>
++        </div>
++    </div>
++</div>
++{% endblock %}
+diff --git a/templates/lista.html b/templates/lista.html
+index ca8a8ff..7e2e604 100644
+--- a/templates/lista.html
++++ b/templates/lista.html
+@@ -66,6 +66,7 @@
+                     <table class="table table-hover align-middle mb-0" id="tablaEmpleados">
+                         <thead>
+                             <tr>
++                                <th>Foto</th>
+                                 <th>Nombre</th>
+                                 <th>Sueldo</th>
+                                 <th>Fecha inicio</th>
+@@ -81,6 +82,16 @@
+                                 data-url-eliminar="{% url 'eliminar_empleado' emp.pk %}"
+                                 data-url-finiquitar="{% url 'finiquitar_empleado' emp.pk %}"
+                                 data-url-renovar="{% url 'renovar_empleado' emp.pk %}">
++                                <td onclick="event.stopPropagation();">
++                                    {% if emp.foto %}
++                                        <img src="{{ emp.get_foto_url }}" alt="Foto de {{ emp.nombre }}"
++                                             class="rounded-circle" style="width:40px;height:40px;object-fit:cover;">
++                                    {% else %}
++                                        <a href="{% url 'agregar_foto_empleado' emp.pk %}" class="btn btn-sm btn-outline-secondary" title="Subir foto">
++                                            <i class="bi bi-camera-fill"></i>
++                                        </a>
++                                    {% endif %}
++                                </td>
+                                 <td class="fw-semibold">{{ emp.nombre }}</td>
+                                 <td>${{ emp.sueldo }}</td>
+                                 <td>{{ emp.fecha_inicio }}</td>
